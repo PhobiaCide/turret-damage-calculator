@@ -1,0 +1,263 @@
+<!doctype html>
+<html
+  lang="en-us"
+  style="height: 100vh"
+  data-bs-core="modern"
+  data-bs-theme="dark"
+>
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Reprocessing Calculator</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/Halfmoon/2.0.1/css/halfmoon.min.css"
+      integrity="sha512-g9GEUJMl/pfimBhAYQmiCb+6Drr+sp8tPllURqR+dcbiHfm+0lAX2fWhZsMHxcQY3/48mUHJs4onDsptohS1Kw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/halfmoon@2.0.1/css/cores/halfmoon.cores.css"
+      rel="stylesheet"
+    >
+  </head>
+
+  <body class="container-fluid bg-body d-flex w-100 h-100 flex-column text-center text-body">
+    <header class="jumbotron p-2 bg-gradient">
+      <h1 class="title display-1">Turret Damage Simulator</h1>
+    </header>
+    <main class="container px-1">
+      <figure class="container">
+        <button
+          type="button"
+          class="btn btn-primary bg-gradient position-relative specific-h-50 specific-w-50"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#panel-1"
+        >
+          Input
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary bg-gradient position-relative specific-h-50 specific-w-50"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#panel-2"
+        >
+          Table
+        </button>
+      </figure>
+      <!-- Input Form -->
+      <aside
+        class="offcanvas offcanvas-end card bg-primary w-lg-25 w-md-50 w-sm-75 rounded-0 rounded-start-5 shadow p-1 pe-0"
+        data-bs-scroll="true"
+        data-bs-backdrop="false"
+        tabindex="-1"
+        id="panel-1"
+        aria-labelledby="panel-1"
+      >
+        <header
+          class="offcanvas-header bg-body-secondary rounded-top-5"
+          style="border-top-right-radius: 0 !important;"
+        >
+          <h5
+            class="offcanvas-title"
+            id="panel-1-title"
+          >Input</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="offcanvas"
+            aria-label="Close"
+          ></button>
+        </header>
+        <article
+          class="offcanvas-body bg-primary-subtle rounded-start-5"
+          style="border-top-left-radius: 0 !important;"
+        >
+          <form class="form bg-body-tertiary bg-gradient bg-opacity-50 rounded p-1">
+            <fieldset class="form-control border-0 bg-body-tertiary bg-opacity-50 bg-gradient px-3">
+              <legend class="p-2 rounded-pill bg-body-emphasis">
+                <h5 class="text-start">Static Values</h5>
+              </legend>
+              <figure class="input-group rounded p-1 my-2">
+                <label
+                  for="optimal"
+                  class="input-group-text"
+                >Optimal Range:
+                </label>
+                <input
+                  id="optimal"
+                  type="number"
+                  step="500"
+                  class="form-control"
+                  value="38500"
+                  placeholder="Optimal Range"
+                />
+                <span class="d-inline-block input-group-text">m</span>
+              </figure>
+              <figure class="input-group rounded p-1 my-2">
+                <label
+                  for="falloff"
+                  class="input-group-text"
+                >Falloff:</label>
+                <input
+                  id="falloff"
+                  type="number"
+                  step="500"
+                  class="form-control"
+                  value="17500"
+                  placeholder="Falloff Range"
+                />
+                <span class="d-inline-block input-group-text">m</span>
+              </figure>
+              <figure class="input-group rounded p-1 my-2">
+                <label
+                  for="dps"
+                  class="input-group-text"
+                >DPS:</label>
+                <input
+                  id="dps"
+                  type="number"
+                  class="form-control"
+                  value="400"
+                  placeholder="Damage Per Second"
+                />
+              </figure>
+              <figure class="input-group rounded p-1 my-2">
+                <label
+                  for="tracking"
+                  class="input-group-text"
+                >Tracking:</label>
+                <input
+                  id="tracking"
+                  type="text"
+                  class="form-control"
+                  value="7"
+                  placeholder="Tracking"
+                />
+              </figure>
+              <figure class="input-group rounded p-1 my-2">
+                <label
+                  for="target-sig"
+                  class="input-group-text"
+                >Target Signature:</label>
+                <input
+                  id="target-sig"
+                  type="number"
+                  class="form-control"
+                  value="500"
+                  placeholder="Target Signature Radius"
+                />
+                <span class="d-inline-block input-group-text">m</span>
+              </figure>
+              <figure class="input-group rounded p-1 my-2">
+                <label
+                  for="turret-sig"
+                  class="input-group-text"
+                >Turret Signature:</label>
+                <input
+                  id="turret-sig"
+                  type="text"
+                  class="form-control"
+                  value="40000"
+                  placeholder="Turret Signature Radius"
+                />
+                <span class="d-inline-block input-group-text">m</span>
+              </figure>
+              <figure class="input-group rounded p-1 my-2">
+                <label
+                  for="target-angle"
+                  class="input-group-text"
+                >Target Angle:</label>
+                <input
+                  id="target-angle"
+                  type="number"
+                  class="form-control"
+                  value="40"
+                  max="180"
+                  min="0"
+                  placeholder="Target Angle"
+                />
+                <span class="d-inline-block input-group-text">°</span>
+              </figure>
+              <figure class="input-group rounded p-1 my-2">
+                <label
+                  for="target-velocity"
+                  class="input-group-text"
+                >Target Velocity:</label>
+                <input
+                  id="target-velocity"
+                  type="text"
+                  class="form-control"
+                  value="200"
+                  placeholder="Target Velocity"
+                />
+                <span class="d-inline-block input-group-text">m/s</span>
+              </figure>
+            </fieldset>
+          </form>
+        </article>
+      </aside>
+      <!-- Damage Table -->
+      <aside
+        class="offcanvas offcanvas-bottom h-50 bg-primary rounded-top-5 shadow p-1 pb-0"
+        data-bs-scroll="true"
+        data-bs-backdrop="false"
+        tabindex="-1"
+        id="panel-2"
+        aria-labelledby="panel-2"
+      >
+        <header class="offcanvas-header bg-body-secondary rounded-top-5">
+          <h5 id="panel-2-title"
+            class="offcanvas-title pb-0 mb-0"
+          >Turret Damage Simulator</h5>
+          <button
+            type="button"
+            class="btn-close mb-0 pb-0"
+            data-bs-dismiss="offcanvas"
+            aria-label="Close"
+          ></button>
+        </header>
+        <article class="offcanvas-body bg-body-secondary shadow">
+          <table
+            id="damage-table"
+            class="float-end table table-hover table-bordered"
+          >
+            <caption>Description of the table</caption>
+            <thead>
+        
+              <tr>
+
+                <th class="bg-body-tertiary" id="range">Range</th>
+                <th class="bg-body-tertiary" scope="col">Transversal</th>
+                <th class="bg-body-tertiary" scope="col">Tracking EQ</th>
+                <th class="bg-body-tertiary" scope="col">% Chance To Hit</th>
+                <th class="bg-body-tertiary" scope="col">Multiplier</th>
+                <th class="bg-body-tertiary" scope="col">Average DPS</th>
+              </tr>
+            </thead>
+            <tbody class="">
+         
+            </tbody>
+          </table>
+        </article>
+      </aside>
+
+    </main>
+    <footer class="jumbotron p-2 bg-gradient mt-auto">
+      <p class="text-sm-center">©️ 2023 Phobiacide</p>
+    </footer>
+
+    <script src="./src/js/updateTable.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"
+      integrity="sha512-X/YkDZyjTf4wyc2Vy16YGCPHwAY8rZJY+POgokZjQB2mhIRFJCckEGc6YyX9eNsPfn0PzThEuNs+uaomE5CO6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+  </body>
+
+</html>
