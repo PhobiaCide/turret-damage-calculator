@@ -1,13 +1,3 @@
-// index.js
-
-import './src/js/bs.js';
-import './src/js/themeToggle.js';
-import './src/js/updateTable.js';
-import './src/js/validateForm.js';
-import 'https://cdnjs.cloudflare.com/ajax/libs/Halfmoon/2.0.1/css/halfmoon.min.css';
-import 'https://cdn.jsdelivr.net/npm/halfmoon@2.0.1/css/cores/halfmoon.modern.css';
-
-
 const degreesToRadians = (degrees) => degrees * Math.PI / 180;
 
 const inputs = {
@@ -23,47 +13,89 @@ const inputs = {
 
 class TurretMatrix {
   constructor() {
-    this.array = Array.from({ length: 40 }, (_, i) => ({ range: 500 * i }));
-    console.log(this.array);
+    this.array = [];
   }
 
   calculate() {
-    return this.array.map((e, i) => {
-      e.transversal = e.range * Math.tan(degreesToRadians(inputs.targetAngle.value) * inputs.targetVelocity.value);
-      e.trackingEQ = Math.pow(e.transversal / (e.range * inputs.tracking.value) * (inputs.targetSig.value / inputs.turretSig.value), 2);
-      e.rangeEQ = Math.pow((Math.max(0, e.range / inputs.optimal.value)), 2);
+    const optimal = parseFloat(inputs.optimal.value) || 1;
+    const falloff = parseFloat(inputs.falloff.value) || 1;
+    const maxRange = optimal + 2 * falloff;
+    this.array = Array.from({ length: Math.ceil((maxRange - 250) / 250) }, (_, i) => ({ range: 250 + 250 * i }));
+
+    return this.array.map(e => {
+      const angleRad = degreesToRadians(parseFloat(inputs.targetAngle.value) || 0);
+      const velocity = parseFloat(inputs.targetVelocity.value) || 0;
+      const tracking = parseFloat(inputs.tracking.value) || 1;
+      const targetSig = parseFloat(inputs.targetSig.value) || 1;
+      const turretSig = parseFloat(inputs.turretSig.value) || 1;
+      const dps = parseFloat(inputs.dps.value) || 0;
+      
+      e.transversal = e.range * Math.tan(angleRad) * velocity;
+      e.trackingEQ = Math.pow((e.transversal / (e.range * tracking)) * (targetSig / turretSig), 2);
+      e.rangeEQ = Math.pow(Math.max(0, e.range / optimal), 2);
       e.chanceToHit = Math.pow(0.5, e.trackingEQ + e.rangeEQ);
       e.multiplier = (e.chanceToHit > 0.01) ? Math.pow(e.chanceToHit, 2) + e.chanceToHit + 0.0499 : e.chanceToHit * 3;
-      e.averageDPS = e.multiplier * inputs.dps.value;
-
+      e.adjustedDPS = e.chanceToHit * dps; // Adjusted DPS based on chance to hit
       return e;
     });
   }
 }
 
-function setupEventListeners() {
-  inputs.optimal.addEventListener('input', () => updateTable(matrix.calculate()));
-  inputs.falloff.addEventListener('input', () => updateTable(matrix.calculate()));
-  inputs.dps.addEventListener('input', () => updateTable(matrix.calculate()));
-  inputs.tracking.addEventListener('input', () => updateTable(matrix.calculate()));
-  inputs.targetSig.addEventListener('input', () => updateTable(matrix.calculate()));
-  inputs.turretSig.addEventListener('input', () => updateTable(matrix.calculate()));
-  inputs.targetAngle.addEventListener('input', () => updateTable(matrix.calculate()));
-  inputs.targetVelocity.addEventListener('input', () => updateTable(matrix.calculate()));
-}
+const matrix = new TurretMatrix();
 
 function updateTable(values) {
-  const table = document.getElementById('damage-table');
-  const tbody = table.querySelector('tbody');
-  const rows = tbody.getElementsByTagName('tr');
-  
-  for (let i = 0; i < rows.length; i++) {
-    const cells = rows[i].getElementsByTagName('td');
-    
-    for (let j = 0; j < cells.length; j++) {
-      cells[j].textContent = values[i][j];
-    }
-  }
+  const tbody = document.querySelector('#damage-table tbody');
+  tbody.innerHTML = '';
+
+  values.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${row.range}</td>
+      <td>${row.transversal.toFixed(2)}</td>
+      <td>${row.trackingEQ.toFixed(4)}</td>
+      <td>${row.rangeEQ.toFixed(4)}</td>
+      <td>${row.chanceToHit.toFixed(4)}</td>
+      <td>${row.multiplier.toFixed(4)}</td>
+      <td>${row.adjustedDPS.toFixed(2)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  updateChart(values);
 }
 
+function updateChart(values) {
+  if (window.chart) window.chart.destroy();
+  const ctx = document.getElementById('damage-chart').getContext('2d');
+  window.chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: values.map(e => e.range),
+      datasets: [{
+        label: 'Adjusted DPS',
+        data: values.map(e => e.adjustedDPS),
+        borderColor: 'blue',
+        borderWidth: 2,
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: { title: { display: true, text: 'Range' } },
+        y: { title: { display: true, text: 'DPS' } }
+      }
+    }
+  });
+}
 
+function setupEventListeners() {
+  Object.values(inputs).forEach(input => {
+    input.addEventListener('input', () => updateTable(matrix.calculate()));
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupEventListeners();
+  updateTable(matrix.calculate());
+});
