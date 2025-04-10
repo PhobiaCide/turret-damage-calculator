@@ -19,25 +19,39 @@ class TurretMatrix {
   calculate() {
     const optimal = parseFloat(inputs.optimal.value) || 1;
     const falloff = parseFloat(inputs.falloff.value) || 1;
-    const maxRange = optimal + 2 * falloff;
-    this.array = Array.from({ length: Math.ceil((maxRange - 250) / 250) }, (_, i) => ({ range: 250 + 250 * i }));
+    const dps = parseFloat(inputs.dps.value) || 0;
+    const tracking = parseFloat(inputs.tracking.value) || 1;
+    const targetSig = parseFloat(inputs.targetSig.value) || 1;
+    const turretSig = parseFloat(inputs.turretSig.value) || 1;
+    const angleRad = degreesToRadians(parseFloat(inputs.targetAngle.value) || 0);
+    const velocity = parseFloat(inputs.targetVelocity.value) || 0;
 
-    return this.array.map(e => {
-      const angleRad = degreesToRadians(parseFloat(inputs.targetAngle.value) || 0);
-      const velocity = parseFloat(inputs.targetVelocity.value) || 0;
-      const tracking = parseFloat(inputs.tracking.value) || 1;
-      const targetSig = parseFloat(inputs.targetSig.value) || 1;
-      const turretSig = parseFloat(inputs.turretSig.value) || 1;
-      const dps = parseFloat(inputs.dps.value) || 0;
-      
-      e.transversal = e.range * Math.tan(angleRad) * velocity;
-      e.trackingEQ = Math.pow((e.transversal / (e.range * tracking)) * (targetSig / turretSig), 2);
-      e.rangeEQ = Math.pow(Math.max(0, e.range / optimal), 2);
-      e.chanceToHit = Math.pow(0.5, e.trackingEQ + e.rangeEQ);
-      e.multiplier = (e.chanceToHit > 0.01) ? Math.pow(e.chanceToHit, 2) + e.chanceToHit + 0.0499 : e.chanceToHit * 3;
-      e.adjustedDPS = e.chanceToHit * dps; // Adjusted DPS based on chance to hit
-      return e;
+    const maxRange = optimal + 2 * falloff;
+    this.array = Array.from({ length: Math.ceil((maxRange - 250) / 250) }, (_, i) => {
+      const range = 250 + 250 * i;
+
+      const transversal = range * Math.tan(angleRad) * velocity;
+      const trackingTerm = Math.pow((transversal / (range * tracking)) * (targetSig / turretSig), 2);
+      const falloffTerm = Math.pow(Math.max(0, (range - optimal) / falloff), 2);
+      const hitChance = Math.pow(0.5, trackingTerm + falloffTerm);
+
+      // Normalized damage multiplier
+      const multiplier = hitChance < 0.01
+        ? hitChance * 3
+        : 0.5 * Math.min(Math.pow(hitChance, 2) + 0.98 * hitChance + 0.0501, 6 * hitChance);
+
+      return {
+        range,
+        transversal,
+        trackingEQ: trackingTerm,
+        rangeEQ: falloffTerm,
+        chanceToHit: hitChance,
+        multiplier,
+        adjustedDPS: dps * multiplier
+      };
     });
+
+    return this.array;
   }
 }
 
@@ -74,7 +88,7 @@ function updateChart(values) {
       datasets: [{
         label: 'Adjusted DPS',
         data: values.map(e => e.adjustedDPS),
-        borderColor: 'blue',
+        borderColor: 'cyan',
         borderWidth: 2,
         fill: false
       }]
@@ -82,17 +96,17 @@ function updateChart(values) {
     options: {
       responsive: true,
       scales: {
-        x: { title: { display: true, text: 'Range' } },
-        y: { title: { display: true, text: 'DPS' } }
+        x: { title: { display: true, text: 'Range (m)' } },
+        y: { title: { display: true, text: 'Adjusted DPS' } }
       }
     }
   });
 }
 
 function setupEventListeners() {
-  Object.values(inputs).forEach(input => {
-    input.addEventListener('input', () => updateTable(matrix.calculate()));
-  });
+  Object.values(inputs).forEach(input =>
+    input.addEventListener('input', () => updateTable(matrix.calculate()))
+  );
 }
 
 document.addEventListener('DOMContentLoaded', () => {
